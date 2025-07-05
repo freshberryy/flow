@@ -1,4 +1,4 @@
-package Token;
+package token;
 
 public enum TokenType {
     // 키워드

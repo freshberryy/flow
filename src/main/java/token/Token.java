@@ -1,4 +1,4 @@
-package Token;
+package token;
 
 public class Token {
 
@@ -12,6 +12,22 @@ public class Token {
         this.lexeme = lexeme;
         this.line = line;
         this.col = col;
+    }
+
+    public TokenType getKind() {
+        return kind;
+    }
+
+    public String getLexeme() {
+        return lexeme;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public int getCol() {
+        return col;
     }
 
     @Override
