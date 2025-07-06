@@ -59,7 +59,8 @@ public class LexerTestMain {
                 "var arr = {1,2,3};",
                 "var nested = {{1,2},{3,4}};",
                 "var x = {1,2,3};",
-                "var y = {{1,2},{3,4}};"
+                "var y = {{1,2},{3,4}};",
+                "arr2d[][]"
         };
 
         for (int i = 0; i < testInputs.length; i++) {
