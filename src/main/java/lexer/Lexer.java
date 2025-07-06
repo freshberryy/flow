@@ -102,8 +102,8 @@ public class Lexer {
 
             String remainingInput = s.substring(offset);
             Pair<TokenType, String> match = findLongestMatch(remainingInput);
-            TokenType kind = match.getKey();
-            String lexeme = match.getValue();
+            TokenType kind = match.first();
+            String lexeme = match.second();
 
 
             if (lexeme.length() > 256) {
