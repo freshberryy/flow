@@ -55,7 +55,7 @@ public class TokenRegex {
 
         // 리터럴
         regexMap.put(TokenType.INT_LITERAL, Pattern.compile("[0-9]+"));
-        regexMap.put(TokenType.FLOAT_LITERAL, Pattern.compile("([0-9]*\\.[0-9]+)|([0-9]+\\.[0-9]*)"));
+        regexMap.put(TokenType.FLOAT_LITERAL, Pattern.compile("[0-9]+\\.[0-9]+"));
         regexMap.put(TokenType.BOOL_LITERAL, Pattern.compile("\\b(true|false)\\b"));
         regexMap.put(TokenType.STRING_LITERAL, Pattern.compile("\"([^\"\\\\]|\\\\[\"\\\\nrt])*\""));
 

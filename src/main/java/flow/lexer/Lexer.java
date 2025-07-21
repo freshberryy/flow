@@ -139,7 +139,7 @@ public class Lexer {
             if (kind == TokenType.FLOAT_LITERAL) {
                 if (lexeme.charAt(0) == '.' || lexeme.charAt(lexeme.length() - 1) == '.') {
                     logger.log(ErrorCode.LEXER_INVALID_NUMBER, line, col);
-                    tokens.add(new Token(kind, lexeme, line, col));
+                    tokens.add(new Token(TokenType.UNKNOWN, lexeme, line, col));
                     advance(lexeme.length());
                     continue;
                 }

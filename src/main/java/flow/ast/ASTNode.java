@@ -6,8 +6,8 @@ import java.io.PrintStream;
 
 public abstract class ASTNode {
 
-    protected int line;
-    protected int col;
+    public int line;
+    public int col;
 
     public ASTNode() {
         this.line = -1;

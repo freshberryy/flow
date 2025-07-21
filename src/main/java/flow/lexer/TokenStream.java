@@ -10,7 +10,7 @@ import java.util.List;
 public class TokenStream {
     private final List<Token> tokens;
     public final Logger logger;
-    private int idx = 0;
+    public int idx = 0;
 
     public TokenStream(final List<Token> tokens) {
         this.tokens = tokens;
@@ -95,5 +95,9 @@ public class TokenStream {
             return tokens.get(0);
         }
         return tokens.get(idx - 1);
+    }
+
+    public int size() {
+        return tokens.size();
     }
 }

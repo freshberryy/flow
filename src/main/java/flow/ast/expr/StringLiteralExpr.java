@@ -7,7 +7,11 @@ public class StringLiteralExpr extends Expr{
 
     public StringLiteralExpr(final String value, int line, int col) {
         super(line, col);
-        this.value = value;
+        if (value.startsWith("\"") && value.endsWith("\"")) {
+            this.value = value.substring(1, value.length() - 1);
+        } else {
+            this.value = value;
+        }
     }
 
     @Override
