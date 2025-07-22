@@ -58,9 +58,9 @@ bool is_seoul(string region) {
 ## 5. 배열
 - 배열은 `string[][]` 형식의 2차원으로 선언 및 초기화한다. 초기화 없이 선언하면 오류이다. csv_to_array() 함수의 반환값을 저장하는 방식으로만 초기화 가능하다.
 - 배열 내에는 string 타입만 저장 가능하다.
-```
+
 string[][] b = csv_to_array(string path);
-```
+
 - 인덱싱은 0-based이며 `arr[i][j]` 형태이다.
 - 배열이 함수의 인자로 전달될 때는 call by value로 전달된다.  
 - 배열 타입 추론은 불가하고, 배열 비교 연산 역시 불가하다.
