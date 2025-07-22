@@ -2,9 +2,9 @@ package flow.runtime.interpreter;
 
 import flow.ast.Type;
 import flow.runtime.errors.RuntimeError;
-import flow.runtime.types.*; // 모든 Value 타입 임포트
+import flow.runtime.types.*;
 import flow.utility.Logger;
-import flow.csv.CsvParser; // CSV 파서 임포트
+import flow.csv.CsvParser; 
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,12 +15,17 @@ public class NativeFunctions {
 
     private final Interpreter interpreter;
     private final Environment globalEnvironment;
-    private final Logger logger;
+    private Logger logger;
 
     public NativeFunctions(Interpreter interpreter, Environment globalEnvironment, Logger logger) {
         this.interpreter = interpreter;
         this.globalEnvironment = globalEnvironment;
         this.logger = logger;
+    }
+
+    public NativeFunctions(Interpreter interpreter, Environment globalEnvironment) {
+        this.interpreter = interpreter;
+        this.globalEnvironment = globalEnvironment;
     }
 
     public void registerAll() {
@@ -37,7 +42,7 @@ public class NativeFunctions {
             if (args.size() != 1) {
                 throw new RuntimeError("print 함수는 1개의 인자를 필요로 합니다.", line, col);
             }
-            // StringValue의 toString()은 따옴표를 포함하므로, asString()을 사용하여 순수 값 얻기
+            
             System.out.println(args.get(0).asString(line, col));
             return new VoidValue();
         };
@@ -46,10 +51,10 @@ public class NativeFunctions {
                 new FunctionValue(
                         new FunctionObject(
                                 "print",
-                                List.of(new Type("any", 0, 0, 0)), // "any" 타입은 모든 타입 허용 (시맨틱 분석 시)
-                                new Type("void", 0, 0, 0),
+                                List.of(new Type("any", 0, 0, 0)), 
+                                new Type("void", 0, 0, 0), 
                                 executor,
-                                0, 0 // 내장 함수 등록 시 임시 line, col
+                                0, 0
                         )
                 ),
                 0, 0
@@ -117,7 +122,7 @@ public class NativeFunctions {
 
             List<Value> rows = new ArrayList<>();
             if (csvData.isEmpty()) {
-                // 빈 2차원 배열 ArrayValue 생성 시 line, col 전달
+                
                 return new ArrayValue(new ArrayList<>(), line, col);
             }
 
@@ -127,11 +132,13 @@ public class NativeFunctions {
                 List<Value> cols = new ArrayList<>();
                 for (String header : headers) {
                     String value = rowMap.get(header);
+                    
                     cols.add(new StringValue(value != null ? value : "NULL"));
                 }
-                rows.add(new ArrayValue(cols, line, col)); // 1차원 ArrayValue 생성 시 line, col 전달
+                rows.add(new ArrayValue(cols, line, col)); 
             }
-            return new ArrayValue(rows, line, col); // 2차원 ArrayValue 생성 시 line, col 전달
+            
+            return new ArrayValue(rows, line, col);
         };
 
         globalEnvironment.define(
@@ -140,7 +147,7 @@ public class NativeFunctions {
                         new FunctionObject(
                                 "csv_to_array",
                                 List.of(new Type("string", 0, 0, 0)),
-                                new Type("string", 2, 0, 0), // 반환 타입: string[][] (Type 클래스 생성자 변경됨)
+                                new Type("string", 2, 0, 0), 
                                 executor,
                                 0, 0
                         )
@@ -162,7 +169,7 @@ public class NativeFunctions {
                 new FunctionValue(
                         new FunctionObject(
                                 "row_length",
-                                List.of(new Type("any", 1, 0, 0)), // 1차원 배열
+                                List.of(new Type("any", 1, 0, 0)), 
                                 new Type("int", 0, 0, 0),
                                 executor,
                                 0, 0
@@ -181,11 +188,11 @@ public class NativeFunctions {
             if (arr.getDimension() < 2) {
                 throw new RuntimeError("col_length 함수는 2차원 이상의 배열에만 적용 가능합니다.", line, col);
             }
-            if (arr.getElements().isEmpty()) {
+            if (arr.getElements().isEmpty()) { 
                 return new IntValue(0);
             }
             Value firstRow = arr.getElements().get(0);
-            if (!firstRow.isArray()) {
+            if (!firstRow.isArray()) { 
                 throw new RuntimeError("col_length 함수는 2차원 이상의 배열에만 적용 가능합니다 (내부 요소가 배열이 아님).", line, col);
             }
             return new IntValue(((ArrayValue)firstRow).getElements().size());
@@ -195,7 +202,7 @@ public class NativeFunctions {
                 new FunctionValue(
                         new FunctionObject(
                                 "col_length",
-                                List.of(new Type("any", 2, 0, 0)), // 2차원 배열
+                                List.of(new Type("any", 2, 0, 0)), 
                                 new Type("int", 0, 0, 0),
                                 executor,
                                 0, 0
@@ -233,17 +240,6 @@ public class NativeFunctions {
                 headers.add(headerVal.asString(line, col));
             }
 
-            // 첫 행은 헤더이므로 건너뛰고 두 번째 행부터 데이터로 처리
-            // CsvParser.generateCreateTable/InsertStatements는 헤더를 내부적으로 처리하므로,
-            // 여기서 전달하는 List<Map>은 실제 데이터 행만 포함해야 함.
-            // CsvParser.readCsv와 일관성을 위해 여기서는 첫 행부터 데이터로 포함하고, PK 처리 로직에 헤더를 넘김.
-            // CsvParser가 헤더를 처리하는 방식으로 `data`를 구성해야 함.
-
-            // CsvParser의 readCsv는 헤더를 첫 레코드로 간주하므로,
-            // 우리가 만든 ArrayValue를 CsvParser가 읽을 수 있는 형식으로 변환.
-            // 여기서는 List<Map<String, String>> data를 CsvParser.generateTable의 입력 형식에 맞춤.
-
-            List<Map<String, String>> dataForCsvParser = new ArrayList<>();
             for (int rowIndex = 0; rowIndex < arr.getElements().size(); rowIndex++) {
                 Value currentRowValue = arr.getElements().get(rowIndex);
                 if (!currentRowValue.isArray()) {
@@ -260,18 +256,18 @@ public class NativeFunctions {
                     Value cellValue = currentRow.getElements().get(colIndex);
                     rowMap.put(header, cellValue.isVoid() ? null : cellValue.asString(line, col));
                 }
-                dataForCsvParser.add(rowMap);
+                data.add(rowMap);
             }
 
             if (pkColIndex < 0 || pkColIndex >= headers.size()) {
                 throw new RuntimeError("기본 키 컬럼 인덱스 범위 초과: " + pkColIndex, line, col);
             }
-            String pkColumnName = headers.get(pkColIndex); // PK 컬럼명
+            String pkColumnName = headers.get(pkColIndex);
 
             String tableName = "GENERATED_TABLE";
 
-            String ddl = CsvParser.generateCreateTable(dataForCsvParser, tableName, pkColumnName);
-            List<String> dmlStatements = CsvParser.generateInsertStatements(dataForCsvParser, tableName);
+            String ddl = CsvParser.generateCreateTable(data, tableName, pkColumnName);
+            List<String> dmlStatements = CsvParser.generateInsertStatements(data, tableName);
 
             System.out.println("--- Generated SQL ---");
             System.out.println(ddl + ";\n");

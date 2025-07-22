@@ -4,30 +4,28 @@ import flow.ast.expr.*;
 import flow.ast.*;
 import flow.ast.stmt.*;
 import flow.lexer.TokenStream;
-import flow.runtime.errors.RuntimeError;
 import flow.token.Token;
 import flow.token.TokenType;
 import flow.utility.Logger;
 import flow.utility.Pair;
-
+import flow.runtime.errors.RuntimeError;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 public class Parser {
 
-    public final TokenStream tokens;
-    public final Logger logger;
-    public final Map<String, FunctionSymbol> functions;
+    private final TokenStream tokens;
+    private Logger logger;
 
     public Parser(List<Token> tokens, Logger logger) {
-        this.logger = logger; 
-        
+        this.logger = logger;
         this.tokens = new TokenStream(tokens, logger);
-        this.functions = new HashMap<>(); 
-        
+    }
+
+    public Parser(List<Token> tokens) {
+
+        this.tokens = new TokenStream(tokens);
     }
 
     
@@ -57,10 +55,9 @@ public class Parser {
                 Expr expr = parseExpr();
                 tokens.expect(TokenType.RPAREN);
                 return expr;
-            case LBRACE:
-                return parseArrayLiteral();
+            case LBRACE: 
+                throw new RuntimeError("배열 리터럴을 통한 직접 초기화는 허용되지 않습니다.", line, col);
             default:
-
                 throw new RuntimeError("예상치 못한 토큰: " + currentToken.kind, line, col);
         }
     }
@@ -78,18 +75,16 @@ public class Parser {
                 expr = new FunctionCallExpr(expr, args, line, col);
 
             } else if (tokens.peek().kind == TokenType.LBRACKET) {
+                
                 tokens.expect(TokenType.LBRACKET);
                 Expr index1 = parseExpr();
                 tokens.expect(TokenType.RBRACKET);
 
-                if (tokens.peek().kind == TokenType.LBRACKET) {
-                    tokens.expect(TokenType.LBRACKET);
-                    Expr index2 = parseExpr();
-                    tokens.expect(TokenType.RBRACKET);
-                    expr = new Array2DAccessExpr(expr, index1, index2, line, col);
-                } else {
-                    expr = new Array1DAccessExpr(expr, index1, line, col);
-                }
+                
+                tokens.expect(TokenType.LBRACKET);
+                Expr index2 = parseExpr();
+                tokens.expect(TokenType.RBRACKET);
+                expr = new Array2DAccessExpr(expr, index1, index2, line, col);
             } else {
                 break;
             }
@@ -112,10 +107,7 @@ public class Parser {
     }
     private Expr parseMulExpr() {
         Expr expr = parseUnaryExpr();
-
-        while (tokens.peek().kind == TokenType.MUL ||
-                tokens.peek().kind == TokenType.DIV ||
-                tokens.peek().kind == TokenType.MOD) {
+        while (tokens.peek().kind == TokenType.MUL || tokens.peek().kind == TokenType.DIV || tokens.peek().kind == TokenType.MOD) {
             Token operator = tokens.next();
             int line = operator.line;
             int col = operator.col;
@@ -126,9 +118,7 @@ public class Parser {
     }
     private Expr parseAddExpr() {
         Expr expr = parseMulExpr();
-
-        while (tokens.peek().kind == TokenType.PLUS ||
-                tokens.peek().kind == TokenType.MINUS) {
+        while (tokens.peek().kind == TokenType.PLUS || tokens.peek().kind == TokenType.MINUS) {
             Token operator = tokens.next();
             int line = operator.line;
             int col = operator.col;
@@ -139,11 +129,7 @@ public class Parser {
     }
     private Expr parseRelationalExpr() {
         Expr expr = parseAddExpr();
-
-        while (tokens.peek().kind == TokenType.LESS ||
-                tokens.peek().kind == TokenType.GREATER ||
-                tokens.peek().kind == TokenType.LESS_EQUAL ||
-                tokens.peek().kind == TokenType.GREATER_EQUAL) {
+        while (tokens.peek().kind == TokenType.LESS || tokens.peek().kind == TokenType.GREATER || tokens.peek().kind == TokenType.LESS_EQUAL || tokens.peek().kind == TokenType.GREATER_EQUAL) {
             Token operator = tokens.next();
             int line = operator.line;
             int col = operator.col;
@@ -154,9 +140,7 @@ public class Parser {
     }
     private Expr parseEqualityExpr() {
         Expr expr = parseRelationalExpr();
-
-        while (tokens.peek().kind == TokenType.EQUAL ||
-                tokens.peek().kind == TokenType.NOT_EQUAL) {
+        while (tokens.peek().kind == TokenType.EQUAL || tokens.peek().kind == TokenType.NOT_EQUAL) {
             Token operator = tokens.next();
             int line = operator.line;
             int col = operator.col;
@@ -167,7 +151,6 @@ public class Parser {
     }
     private Expr parseAndExpr() {
         Expr expr = parseEqualityExpr();
-
         while (tokens.peek().kind == TokenType.AND) {
             Token operator = tokens.next();
             int line = operator.line;
@@ -179,7 +162,6 @@ public class Parser {
     }
     private Expr parseOrExpr() {
         Expr expr = parseAndExpr();
-
         while (tokens.peek().kind == TokenType.OR) {
             Token operator = tokens.next();
             int line = operator.line;
@@ -200,18 +182,16 @@ public class Parser {
             line = tokens.peek().line;
             col = tokens.peek().col;
             if (tokens.peek().kind == TokenType.LBRACKET) {
+                
                 tokens.expect(TokenType.LBRACKET);
                 Expr index1 = parseExpr();
                 tokens.expect(TokenType.RBRACKET);
 
-                if (tokens.peek().kind == TokenType.LBRACKET) {
-                    tokens.expect(TokenType.LBRACKET);
-                    Expr index2 = parseExpr();
-                    tokens.expect(TokenType.RBRACKET);
-                    lhs = new Array2DAccessExpr(lhs, index1, index2, line, col);
-                } else {
-                    lhs = new Array1DAccessExpr(lhs, index1, line, col);
-                }
+                
+                tokens.expect(TokenType.LBRACKET);
+                Expr index2 = parseExpr();
+                tokens.expect(TokenType.RBRACKET);
+                lhs = new Array2DAccessExpr(lhs, index1, index2, line, col);
             } else {
                 break;
             }
@@ -225,11 +205,8 @@ public class Parser {
             int line = tokens.previous().line;
             int col = tokens.previous().col;
 
-            if (!(left instanceof IdentifierExpr ||
-                    left instanceof Array1DAccessExpr ||
-                    left instanceof Array2DAccessExpr)) {
-
-                throw new RuntimeException("할당 연산의 좌변은 식별자 또는 배열 접근이어야 합니다. at " + line + ":" + col);
+            if (!(left instanceof IdentifierExpr || left instanceof Array1DAccessExpr || left instanceof Array2DAccessExpr)) {
+                throw new RuntimeError("할당 연산의 좌변은 식별자 또는 배열 접근이어야 합니다.", line, col);
             }
 
             Expr right = parseAssignExpr();
@@ -241,21 +218,9 @@ public class Parser {
     private Expr parseExpr() {
         return parseAssignExpr();
     }
-    private Expr parseArrayLiteral() {
-        int line = tokens.peek().line;
-        int col = tokens.peek().col;
-        tokens.expect(TokenType.LBRACE);
 
-        List<Expr> elements = new ArrayList<>();
-        if (tokens.peek().kind != TokenType.RBRACE) {
-            elements.add(parseExpr());
-            while (tokens.match(TokenType.COMMA)) {
-                elements.add(parseExpr());
-            }
-        }
-        tokens.expect(TokenType.RBRACE);
-        return new ArrayLiteralExpr(elements, line, col);
-    }
+    
+
     private List<Expr> parseArgList() {
         List<Expr> args = new ArrayList<>();
         if (tokens.peek().kind != TokenType.RPAREN) {
@@ -267,14 +232,15 @@ public class Parser {
         return args;
     }
     private Expr parseOptExpr() {
-        if (tokens.peek().kind != TokenType.SEMICOLON &&
-                tokens.peek().kind != TokenType.RPAREN) {
+        if (tokens.peek().kind != TokenType.SEMICOLON && tokens.peek().kind != TokenType.RPAREN) {
             return parseExpr();
         }
         return null;
     }
 
-    public Type parseType() {
+    
+
+    public flow.ast.Type parseType() {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
 
@@ -290,26 +256,37 @@ public class Parser {
                 baseTypeName = tokens.next().lexeme;
                 break;
             default:
-                throw new RuntimeException("예상한 기본 타입 키워드가 아님. at " + line + ":" + col);
+                throw new RuntimeError("예상한 기본 타입 키워드가 아님.", line, col);
         }
 
         if (tokens.match(TokenType.LBRACKET)) {
+            
             tokens.expect(TokenType.RBRACKET);
-            dim = 1;
-            if (tokens.match(TokenType.LBRACKET)) {
-                tokens.expect(TokenType.RBRACKET);
-                dim = 2;
+            dim = 1; 
+
+            tokens.expect(TokenType.LBRACKET); 
+            tokens.expect(TokenType.RBRACKET);
+            dim = 2; 
+        }
+
+        
+        if (dim > 0) { 
+            if (!baseTypeName.equals("string")) {
+                throw new RuntimeError("배열의 기본 타입은 string만 가능합니다. (실제: " + baseTypeName + ")", line, col);
+            }
+            if (dim != 2) { 
+                throw new RuntimeError("배열 선언은 2차원 (string[][])만 가능합니다. (실제 차원: " + dim + ")", line, col);
             }
         }
 
-        return new Type(baseTypeName, dim, line, col);
+        return new flow.ast.Type(baseTypeName, dim, line, col);
     }
 
     public Param parseParam() {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
 
-        Type type = parseType();
+        flow.ast.Type type = parseType();
         Token idToken = tokens.expect(TokenType.IDENTIFIER);
 
         return new Param(type, idToken.lexeme, line, col);
@@ -327,13 +304,13 @@ public class Parser {
         return params;
     }
 
-    public Type parseFuncReturnType() {
+    public flow.ast.Type parseFuncReturnType() {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
 
         if (tokens.peek().kind == TokenType.KW_VOID) {
             tokens.next();
-            return new Type("void", 0, line, col);
+            return new flow.ast.Type("void", 0, line, col);
         }
         return parseType();
     }
@@ -342,11 +319,26 @@ public class Parser {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
 
-        Type type = parseType();
+        flow.ast.Type type = parseType(); 
         Token idToken = tokens.expect(TokenType.IDENTIFIER);
 
         tokens.expect(TokenType.ASSIGN);
-        Expr initExpr = parseExpr();
+        Expr initExpr = parseExpr(); 
+
+        
+        if (type.getDim() == 2) { 
+            if (!type.getBaseType().equals("string")) {
+                throw new RuntimeError("배열의 기본 타입은 string만 가능합니다. (실제: " + type.getBaseType() + ")", type.line, type.col);
+            }
+            if (!(initExpr instanceof FunctionCallExpr &&
+                    ((FunctionCallExpr)initExpr).getCallee() instanceof IdentifierExpr &&
+                    ((IdentifierExpr)((FunctionCallExpr)initExpr).getCallee()).getName().equals("csv_to_array"))) {
+                throw new RuntimeError("배열은 'csv_to_array()' 함수의 반환값으로만 초기화 가능합니다.", initExpr.line, initExpr.col);
+            }
+        } else { 
+            
+            
+        }
 
         return new VarDeclStmt(type, idToken.lexeme, initExpr, line, col);
     }
@@ -363,36 +355,27 @@ public class Parser {
     public Stmt parseBreakStmt() {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
-
         tokens.expect(TokenType.KW_BREAK);
-
         return new BreakStmt(line, col);
     }
 
     public Stmt parseContinueStmt() {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
-
         tokens.expect(TokenType.KW_CONTINUE);
-
         return new ContinueStmt(line, col);
     }
 
     public Stmt parseReturnStmt() {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
-
         tokens.expect(TokenType.KW_RETURN);
-
         Expr expr = null;
-        if (tokens.peek().kind != TokenType.SEMICOLON &&
-                tokens.peek().kind != TokenType.RBRACE &&
-                tokens.peek().kind != TokenType.END_OF_FILE) {
+        if (tokens.peek().kind != TokenType.SEMICOLON && tokens.peek().kind != TokenType.RBRACE && tokens.peek().kind != TokenType.END_OF_FILE) {
             expr = parseExpr();
         } else {
             expr = new VoidExpr(line, col);
         }
-
         return new ReturnStmt(expr, line, col);
     }
 
@@ -403,9 +386,8 @@ public class Parser {
         tokens.expect(TokenType.LBRACE);
 
         List<Stmt> statements = new ArrayList<>();
-        while (tokens.peek().kind != TokenType.RBRACE &&
-                tokens.peek().kind != TokenType.END_OF_FILE) {
-            statements.add(parseStmt()); 
+        while (tokens.peek().kind != TokenType.RBRACE && tokens.peek().kind != TokenType.END_OF_FILE) {
+            statements.add(parseStmt());
         }
 
         tokens.expect(TokenType.RBRACE);
@@ -426,16 +408,16 @@ public class Parser {
         BlockStmt elseBranch = null;
 
         while (tokens.match(TokenType.KW_ELSE)) {
-            if (tokens.match(TokenType.KW_IF)) {
+            if (tokens.peek().kind == TokenType.KW_IF) {
+                tokens.next();
                 tokens.expect(TokenType.LPAREN);
                 Expr elseIfCondition = parseExpr();
                 tokens.expect(TokenType.RPAREN);
                 BlockStmt elseIfBlock = parseBlock();
                 elseIfBranches.add(new Pair<>(elseIfCondition, elseIfBlock));
             } else {
-                
                 elseBranch = parseBlock();
-                break; 
+                break;
             }
         }
         return new IfStmt(condition, thenBranch, elseIfBranches, elseBranch, line, col);
@@ -479,7 +461,7 @@ public class Parser {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
 
-        Type returnType = parseFuncReturnType();
+        flow.ast.Type returnType = parseFuncReturnType();
         Token funcName = tokens.expect(TokenType.IDENTIFIER);
 
         tokens.expect(TokenType.LPAREN);
@@ -489,78 +471,79 @@ public class Parser {
         BlockStmt body = parseBlock();
 
         FunctionPrototype prototype = new FunctionPrototype(funcName.lexeme, params, returnType, line, col);
-        functions.put(funcName.lexeme, new FunctionSymbol(prototype, body));
-
         return new FuncDeclStmt(prototype, body, line, col);
+    }
+
+    public Stmt parseSimpleStmt() {
+        TokenType currentKind = tokens.peek().kind;
+        Stmt stmt;
+
+        switch (currentKind) {
+            case KW_INT:
+            case KW_FLOAT:
+            case KW_BOOL:
+            case KW_STRING:
+                stmt = parseVarDeclStmt();
+                break;
+            case KW_RETURN:
+                stmt = parseReturnStmt();
+                break;
+            default:
+                stmt = parseExprStmt();
+                break;
+        }
+        return stmt;
+    }
+
+    public Stmt parseCompoundStmt() {
+        TokenType currentKind = tokens.peek().kind;
+        int line = tokens.peek().line;
+        int col = tokens.peek().col;
+
+        switch (currentKind) {
+            case KW_IF:
+                return parseIfStmt();
+            case KW_WHILE:
+                return parseWhileStmt();
+            case KW_FOR:
+                return parseForStmt();
+            default:
+                throw new RuntimeError("예상한 복합 구문 키워드가 아님.", line, col);
+        }
     }
 
     public Stmt parseStmt() {
         TokenType currentKind = tokens.peek().kind;
         int line = tokens.peek().line;
         int col = tokens.peek().col;
-        Stmt stmt;
 
-        switch (currentKind) {
-            
-            case KW_IF:
-                stmt = parseIfStmt();
-                break;
-            case KW_WHILE:
-                stmt = parseWhileStmt();
-                break;
-            case KW_FOR:
-                stmt = parseForStmt();
-                break;
-            case KW_VOID: 
-                
-                if (tokens.idx + 2 < tokens.size() &&
-                        tokens.peek(1).kind == TokenType.IDENTIFIER &&
-                        tokens.peek(2).kind == TokenType.LPAREN) {
-                    stmt = parseFuncDeclStmt();
-                } else {
-                    
-                    throw new RuntimeException("예상한 'void' 구문이 아님. at " + line + ":" + col);
-                }
-                break;
-            case KW_INT: 
-            case KW_FLOAT:
-            case KW_BOOL:
-            case KW_STRING:
-                
-                if (tokens.idx + 2 < tokens.size() &&
-                        tokens.peek(1).kind == TokenType.IDENTIFIER &&
-                        tokens.peek(2).kind == TokenType.LPAREN) {
-                    stmt = parseFuncDeclStmt();
-                } else {
-                    
-                    stmt = parseVarDeclStmt();
-                    tokens.expect(TokenType.SEMICOLON); 
-                }
-                break;
-            
-            case KW_BREAK:
-                stmt = parseBreakStmt();
-                tokens.expect(TokenType.SEMICOLON);
-                break;
-            case KW_CONTINUE:
-                stmt = parseContinueStmt();
-                tokens.expect(TokenType.SEMICOLON);
-                break;
-            case KW_RETURN:
-                stmt = parseReturnStmt();
-                tokens.expect(TokenType.SEMICOLON);
-                break;
-            case LBRACE:
-                throw new RuntimeException("'{'로 시작하는 독립적인 구문은 허용되지 않습니다. at " + line + ":" + col);
-            default: 
-                stmt = parseExprStmt();
-                tokens.expect(TokenType.SEMICOLON); 
-                break;
+        if (currentKind == TokenType.KW_VOID ||
+                currentKind == TokenType.KW_INT || currentKind == TokenType.KW_FLOAT ||
+                currentKind == TokenType.KW_BOOL || currentKind == TokenType.KW_STRING) {
+
+            if (tokens.idx + 2 < tokens.size() &&
+                    tokens.peek(1).kind == TokenType.IDENTIFIER &&
+                    tokens.peek(2).kind == TokenType.LPAREN) {
+                return parseFuncDeclStmt();
+            }
         }
-        return stmt;
+
+        if (currentKind == TokenType.KW_IF ||
+                currentKind == TokenType.KW_WHILE ||
+                currentKind == TokenType.KW_FOR) {
+            return parseCompoundStmt();
+        }
+
+        if (currentKind == TokenType.LBRACE) {
+            throw new RuntimeError("'{'로 시작하는 독립적인 구문은 허용되지 않습니다.", line, col);
+        }
+
+        Stmt simpleStmt = parseSimpleStmt();
+        tokens.expect(TokenType.SEMICOLON);
+        return simpleStmt;
     }
 
-    public ProgramNode parseProgram() {
+    public flow.ast.ProgramNode parseProgram() {
         int line = tokens.peek().line;
         int col = tokens.peek().col;
 
@@ -570,6 +553,6 @@ public class Parser {
         }
         tokens.expect(TokenType.END_OF_FILE);
 
-        return new ProgramNode(statements, line, col);
+        return new flow.ast.ProgramNode(statements, line, col);
     }
 }

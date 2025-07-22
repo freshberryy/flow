@@ -32,6 +32,13 @@ public class Lexer {
         this.logger = logger;
     }
 
+    public Lexer(){
+        TokenRegex.initRegexMap();
+        TokenPriority.initTokenPriorityMap();
+        this.regexMap = TokenRegex.regexMap;
+        this.tokenPriorityMap = TokenPriority.tokenPriorityMap;
+    }
+
     public void printLogs(){
         logger.printLogs();
     }

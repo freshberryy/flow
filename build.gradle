@@ -13,6 +13,8 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0'
+    implementation 'com.fifesoft:rsyntaxtextarea:3.3.3'
+
 }
 
 test {

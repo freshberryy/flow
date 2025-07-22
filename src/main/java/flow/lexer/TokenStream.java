@@ -9,12 +9,16 @@ import java.util.List;
 
 public class TokenStream {
     private final List<Token> tokens;
-    public final Logger logger;
+    public Logger logger;
     public int idx = 0;
 
     public TokenStream(final List<Token> tokens, Logger logger) {
         this.tokens = tokens;
         this.logger = logger;
+    }
+
+    public TokenStream(final List<Token> tokens) {
+        this.tokens = tokens;
     }
 
     public int getLine() {
