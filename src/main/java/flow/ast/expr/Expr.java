@@ -1,6 +1,8 @@
 package flow.ast.expr;
 
 import flow.ast.ASTNode;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
 
 import java.io.PrintStream;
 
@@ -21,4 +23,7 @@ public abstract class Expr extends ASTNode {
 
     @Override
     public abstract String toString();
+
+    @Override
+    public abstract Value accept(Interpreter interpreter);
 }

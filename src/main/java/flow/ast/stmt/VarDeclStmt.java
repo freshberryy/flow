@@ -2,6 +2,9 @@ package flow.ast.stmt;
 
 import flow.ast.Type;
 import flow.ast.expr.Expr;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
 
 import java.io.PrintStream;
 
@@ -54,5 +57,12 @@ public class VarDeclStmt extends Stmt{
 
     public Expr getInit() {
         return init;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        Value initValue = this.getInit().accept(interpreter); 
+        interpreter.currentEnvironment.define(this.getName(), initValue, this.line, this.col); 
+        return new VoidValue(); 
     }
 }

@@ -1,5 +1,9 @@
 package flow.ast.expr;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.IntValue;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 
 public class IntLiteralExpr extends Expr{
@@ -30,5 +34,10 @@ public class IntLiteralExpr extends Expr{
     public void dump(PrintStream os, int indent) {
         printIndent(os, indent);
         os.println("IntLiteralExpr: " + toString());
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        return new IntValue(Integer.parseInt(this.value));
     }
 }

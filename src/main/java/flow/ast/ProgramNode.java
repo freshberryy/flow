@@ -1,6 +1,9 @@
 package flow.ast;
 
 import flow.ast.stmt.Stmt;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -39,5 +42,13 @@ public class ProgramNode extends ASTNode{
 
     public List<Stmt> getStatements() {
         return new ArrayList<>(statements);
+    }
+
+    public Value accept(Interpreter interpreter){
+        for(Stmt stmt : statements){
+            stmt.accept(interpreter);
+        }
+
+        return new VoidValue();
     }
 }

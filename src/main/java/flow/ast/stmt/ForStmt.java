@@ -1,6 +1,10 @@
 package flow.ast.stmt;
 
 import flow.ast.expr.Expr;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.BoolValue;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
 
 import java.io.PrintStream;
 
@@ -70,5 +74,32 @@ public class ForStmt extends Stmt{
 
     public BlockStmt getBody() {
         return body;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        if (this.getInit() != null) { 
+            this.getInit().accept(interpreter);
+        }
+
+        while (true) { 
+            Value conditionValue;
+            if (this.getCond() != null) { 
+                conditionValue = this.getCond().accept(interpreter);
+            } else {
+                conditionValue = new BoolValue(true);
+            }
+
+            if (!conditionValue.isTruth()) {
+                break;
+            }
+
+            this.getBody().accept(interpreter); 
+
+            if (this.getPost() != null) { 
+                this.getPost().accept(interpreter);
+            }
+        }
+        return new VoidValue();
     }
 }

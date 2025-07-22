@@ -1,5 +1,9 @@
 package flow.ast.expr;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.ArrayValue;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +13,13 @@ public class ArrayLiteralExpr extends Expr {
 
     private final List<Expr> elements;
     private final int dim;
+    public int line;
+    public int col;
 
     public ArrayLiteralExpr(final List<Expr> elements, int line, int col) {
         super(line, col);
+        this.line = line;
+        this.col = col;
         this.elements = new ArrayList<>(elements);
         if (elements.isEmpty()) {
             this.dim = 1;
@@ -67,5 +75,14 @@ public class ArrayLiteralExpr extends Expr {
 
     public int getDim() {
         return dim;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        List<Value> runtimeElements = new ArrayList<>();
+        for (Expr elementNode : this.getElements()) {
+            runtimeElements.add(elementNode.accept(interpreter)); 
+        }
+        return new ArrayValue(runtimeElements, line, col);
     }
 }

@@ -1,5 +1,7 @@
 package flow.ast;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
 import flow.utility.Pair;
 
 import java.io.PrintStream;
@@ -57,5 +59,8 @@ public class Type extends ASTNode {
         return dim;
     }
 
-
+    @Override
+    public Value accept(Interpreter interpreter){
+        return null;
+    }
 }

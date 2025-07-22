@@ -1,5 +1,8 @@
 package flow.ast;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 
 public class Param extends ASTNode{
@@ -32,5 +35,10 @@ public class Param extends ASTNode{
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter){
+        return null;
     }
 }

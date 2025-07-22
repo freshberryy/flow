@@ -160,10 +160,11 @@ public class CsvParser {
 
 
     public static void main(String[] args) throws IOException {
-        String path = "C:\\Users\\lenovo\\Downloads\\한국수자원공사_강수비율(월별) 현황_20240729.csv";
+        String path = "C:\\YHY\\flow\\src\\main\\resources\\books.csv";
         List<Map<String, String>> data = readCsv(path);
         String ddl = generateCreateTable(data, "MY_TABLE", "코드");
         List<String> ins = generateInsertStatements(data, "MY_TABLE");
+        System.out.println(ddl);
         ins.forEach(System.out::println);
     }
 }

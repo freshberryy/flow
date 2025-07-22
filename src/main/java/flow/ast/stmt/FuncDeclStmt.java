@@ -1,6 +1,12 @@
 package flow.ast.stmt;
 
 import flow.ast.FunctionPrototype;
+import flow.runtime.errors.RuntimeError;
+import flow.runtime.interpreter.FunctionObject;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.FunctionValue;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
 
 import java.io.PrintStream;
 
@@ -41,5 +47,21 @@ public class FuncDeclStmt extends Stmt{
 
     public BlockStmt getBody() {
         return body;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        
+        FunctionObject funcObj = new FunctionObject(
+                this.getPrototype().getName(),
+                this.getPrototype().getParams(),
+                this.getBody(),
+                interpreter.currentEnvironment, 
+                this.getPrototype().getReturnType(),
+                this.line, this.col
+        );
+        
+        interpreter.currentEnvironment.define(funcObj.getName(), new FunctionValue(funcObj), this.line, this.col);
+        return new VoidValue(); 
     }
 }

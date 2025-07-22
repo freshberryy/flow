@@ -1,5 +1,8 @@
 package flow.ast;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +31,11 @@ public class FunctionPrototype extends ASTNode{
         }
         oss.append(")");
         return oss.toString();
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        return null;
     }
 
     @Override

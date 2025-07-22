@@ -1,6 +1,9 @@
 package flow.ast.stmt;
 
 import flow.ast.expr.Expr;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
 
 import java.io.PrintStream;
 
@@ -42,5 +45,17 @@ public class WhileStmt extends Stmt{
 
     public BlockStmt getBody() {
         return body;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        while (true) { 
+            Value conditionValue = this.getCondition().accept(interpreter); 
+            if (!conditionValue.isTruth()) { 
+                break;
+            }
+            this.getBody().accept(interpreter); 
+        }
+        return new VoidValue(); 
     }
 }

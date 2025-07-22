@@ -1,5 +1,8 @@
 package flow.ast.expr;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 
 public class BinaryExpr extends Expr{
@@ -50,5 +53,12 @@ public class BinaryExpr extends Expr{
 
     public String getOp() {
         return op;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        Value lhsValue = this.getLhs().accept(interpreter); 
+        Value rhsValue = this.getRhs().accept(interpreter); 
+        return lhsValue.performBinaryOperation(rhsValue, this.getOp(), this.line, this.col); 
     }
 }

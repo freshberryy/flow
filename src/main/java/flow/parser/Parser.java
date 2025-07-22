@@ -4,11 +4,12 @@ import flow.ast.expr.*;
 import flow.ast.*;
 import flow.ast.stmt.*;
 import flow.lexer.TokenStream;
+import flow.runtime.errors.RuntimeError;
 import flow.token.Token;
 import flow.token.TokenType;
 import flow.utility.Logger;
 import flow.utility.Pair;
-import flow.utility.ErrorCode;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,13 +22,15 @@ public class Parser {
     public final Logger logger;
     public final Map<String, FunctionSymbol> functions;
 
-    public Parser(List<Token> tokens) {
-        this.tokens = new TokenStream(tokens);
-        this.logger = new Logger();
-        this.functions = new HashMap<>();
+    public Parser(List<Token> tokens, Logger logger) {
+        this.logger = logger; 
+        
+        this.tokens = new TokenStream(tokens, logger);
+        this.functions = new HashMap<>(); 
+        
     }
 
-    // --- Expression Parsing Methods (이전과 동일하게 유지) ---
+    
     private Expr parsePrimaryExpr() {
         Token currentToken = tokens.peek();
         int line = currentToken.line;
@@ -57,8 +60,8 @@ public class Parser {
             case LBRACE:
                 return parseArrayLiteral();
             default:
-                logger.log(ErrorCode.TOKEN_MISMATCH, line, col);
-                throw new RuntimeException("예상치 못한 토큰: " + currentToken.kind + " at " + line + ":" + col);
+
+                throw new RuntimeError("예상치 못한 토큰: " + currentToken.kind, line, col);
         }
     }
     private Expr parsePostfixExpr() {
@@ -225,7 +228,7 @@ public class Parser {
             if (!(left instanceof IdentifierExpr ||
                     left instanceof Array1DAccessExpr ||
                     left instanceof Array2DAccessExpr)) {
-                logger.log(ErrorCode.TOKEN_MISMATCH, line, col);
+
                 throw new RuntimeException("할당 연산의 좌변은 식별자 또는 배열 접근이어야 합니다. at " + line + ":" + col);
             }
 
@@ -270,10 +273,6 @@ public class Parser {
         }
         return null;
     }
-    // --- End Expression Parsing Methods ---
-
-
-    // --- Statement-related Parsing Methods ---
 
     public Type parseType() {
         int line = tokens.peek().line;
@@ -291,7 +290,6 @@ public class Parser {
                 baseTypeName = tokens.next().lexeme;
                 break;
             default:
-                logger.log(ErrorCode.TOKEN_MISMATCH, line, col);
                 throw new RuntimeException("예상한 기본 타입 키워드가 아님. at " + line + ":" + col);
         }
 
@@ -407,7 +405,7 @@ public class Parser {
         List<Stmt> statements = new ArrayList<>();
         while (tokens.peek().kind != TokenType.RBRACE &&
                 tokens.peek().kind != TokenType.END_OF_FILE) {
-            statements.add(parseStmt()); // parseStmt 호출
+            statements.add(parseStmt()); 
         }
 
         tokens.expect(TokenType.RBRACE);
@@ -435,9 +433,9 @@ public class Parser {
                 BlockStmt elseIfBlock = parseBlock();
                 elseIfBranches.add(new Pair<>(elseIfCondition, elseIfBlock));
             } else {
-                // "else" 키워드는 이미 match()에서 소비되었으므로, 바로 block을 파싱
+                
                 elseBranch = parseBlock();
-                break; // 단독 else는 마지막이므로 루프 종료
+                break; 
             }
         }
         return new IfStmt(condition, thenBranch, elseIfBranches, elseBranch, line, col);
@@ -503,7 +501,7 @@ public class Parser {
         Stmt stmt;
 
         switch (currentKind) {
-            // 복합 구문 (세미콜론이 없는 블록 구문)
+            
             case KW_IF:
                 stmt = parseIfStmt();
                 break;
@@ -513,34 +511,33 @@ public class Parser {
             case KW_FOR:
                 stmt = parseForStmt();
                 break;
-            case KW_VOID: // 함수 선언 (void)
-                // 현재 토큰이 'void'이고, peek(1)이 IDENTIFIER, peek(2)가 LPAREN이면 함수 선언
+            case KW_VOID: 
+                
                 if (tokens.idx + 2 < tokens.size() &&
                         tokens.peek(1).kind == TokenType.IDENTIFIER &&
                         tokens.peek(2).kind == TokenType.LPAREN) {
                     stmt = parseFuncDeclStmt();
                 } else {
-                    // 'void' 키워드만 있고 함수 선언 패턴이 아니면 에러 (예: 'void;' - EBNF에 없음)
-                    logger.log(ErrorCode.TOKEN_MISMATCH, line, col);
+                    
                     throw new RuntimeException("예상한 'void' 구문이 아님. at " + line + ":" + col);
                 }
                 break;
-            case KW_INT: // 함수 선언 또는 변수 선언 (타입 키워드)
+            case KW_INT: 
             case KW_FLOAT:
             case KW_BOOL:
             case KW_STRING:
-                // 현재 토큰이 타입 키워드이고, peek(1)이 IDENTIFIER, peek(2)가 LPAREN이면 함수 선언
+                
                 if (tokens.idx + 2 < tokens.size() &&
                         tokens.peek(1).kind == TokenType.IDENTIFIER &&
                         tokens.peek(2).kind == TokenType.LPAREN) {
                     stmt = parseFuncDeclStmt();
                 } else {
-                    // 함수 선언 패턴이 아니면 변수 선언
+                    
                     stmt = parseVarDeclStmt();
-                    tokens.expect(TokenType.SEMICOLON); // 변수 선언 뒤에는 세미콜론 필수
+                    tokens.expect(TokenType.SEMICOLON); 
                 }
                 break;
-            // 단순 구문 (세미콜론이 필요한 구문)
+            
             case KW_BREAK:
                 stmt = parseBreakStmt();
                 tokens.expect(TokenType.SEMICOLON);
@@ -553,15 +550,11 @@ public class Parser {
                 stmt = parseReturnStmt();
                 tokens.expect(TokenType.SEMICOLON);
                 break;
-            case LBRACE: // 독립적인 블록 구문 (예: `{ int x = 10; }` )
-                // EBNF에 `stmt` 규칙에 `{ block }` 형태가 직접 명시되지 않았으므로
-                // 여기서는 허용하지 않고 예외 발생.
-                // 만약 허용하려면 `stmt = parseBlock();`으로 파싱하고 `break;`
-                logger.log(ErrorCode.TOKEN_MISMATCH, line, col);
+            case LBRACE:
                 throw new RuntimeException("'{'로 시작하는 독립적인 구문은 허용되지 않습니다. at " + line + ":" + col);
-            default: // 그 외 모든 경우는 표현식 구문
+            default: 
                 stmt = parseExprStmt();
-                tokens.expect(TokenType.SEMICOLON); // 표현식 구문 뒤에는 세미콜론 필수
+                tokens.expect(TokenType.SEMICOLON); 
                 break;
         }
         return stmt;

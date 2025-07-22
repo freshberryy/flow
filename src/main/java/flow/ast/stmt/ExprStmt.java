@@ -1,6 +1,9 @@
 package flow.ast.stmt;
 
 import flow.ast.expr.Expr;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
 
 import java.io.PrintStream;
 
@@ -30,5 +33,11 @@ public class ExprStmt extends Stmt{
 
     public Expr getExpr() {
         return expr;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        this.getExpr().accept(interpreter); 
+        return new VoidValue(); 
     }
 }

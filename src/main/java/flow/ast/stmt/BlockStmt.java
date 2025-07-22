@@ -1,5 +1,10 @@
 package flow.ast.stmt;
 
+import flow.runtime.interpreter.Environment;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,5 +42,18 @@ public class BlockStmt extends Stmt{
 
     public List<Stmt> getStatements() {
         return new ArrayList<>(stmts);
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        Environment prevEnvironment = interpreter.currentEnvironment; 
+        interpreter.currentEnvironment = new Environment(prevEnvironment); 
+
+        for (Stmt stmt : this.getStatements()) {
+            interpreter.executeStatement(stmt); 
+        }
+
+        interpreter.currentEnvironment = prevEnvironment; 
+        return new VoidValue(); 
     }
 }

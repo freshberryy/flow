@@ -1,5 +1,6 @@
 package flow.lexer;
 
+import flow.runtime.errors.RuntimeError;
 import flow.token.Token;
 import flow.token.TokenPriority;
 import flow.token.TokenRegex;
@@ -23,12 +24,12 @@ public class Lexer {
     private Logger logger;
 
 
-    public Lexer(){
+    public Lexer(Logger logger){
         TokenRegex.initRegexMap();
         TokenPriority.initTokenPriorityMap();
         this.regexMap = TokenRegex.regexMap;
         this.tokenPriorityMap = TokenPriority.tokenPriorityMap;
-        this.logger = new Logger();
+        this.logger = logger;
     }
 
     public void printLogs(){
@@ -110,25 +111,19 @@ public class Lexer {
         List<Token> tokens = new ArrayList<>();
 
         while (offset < s.length()) {
-
             String remainingInput = s.substring(offset);
             Pair<TokenType, String> match = findLongestMatch(remainingInput);
             TokenType kind = match.first();
             String lexeme = match.second();
 
             if (lexeme.length() > 256) {
-                logger.log(ErrorCode.LEXER_OVERLONG_TOKEN, line, col);
-
-                tokens.add(new Token(kind, lexeme.substring(0, 5), line, col));
-                advance(lexeme.length());
-                continue;
+                
+                throw new RuntimeError("렉서 오류: 너무 긴 토큰입니다. (길이: " + lexeme.length() + ")", line, col);
             }
 
             if (kind == TokenType.UNKNOWN || lexeme.isEmpty()) {
-                logger.log(ErrorCode.LEXER_UNKNOWN_TOKEN, line, col);
-                tokens.add(new Token(kind, lexeme, line, col));
-                advance(lexeme.length());
-                continue;
+                
+                throw new RuntimeError("렉서 오류: 알 수 없는 토큰입니다. (렉심: '" + (lexeme.isEmpty() ? s.charAt(offset) : lexeme) + "')", line, col);
             }
 
             if (skipToken(kind)) {
@@ -138,20 +133,16 @@ public class Lexer {
 
             if (kind == TokenType.FLOAT_LITERAL) {
                 if (lexeme.charAt(0) == '.' || lexeme.charAt(lexeme.length() - 1) == '.') {
-                    logger.log(ErrorCode.LEXER_INVALID_NUMBER, line, col);
-                    tokens.add(new Token(TokenType.UNKNOWN, lexeme, line, col));
-                    advance(lexeme.length());
-                    continue;
+                    
+                    throw new RuntimeError("렉서 오류: 유효하지 않은 실수 리터럴 형식입니다. (렉심: '" + lexeme + "')", line, col);
                 }
             }
 
             if (kind == TokenType.STRING_LITERAL) {
                 long quoteCount = lexeme.chars().filter(ch -> ch == '"').count();
                 if (quoteCount % 2 == 1) {
-                    logger.log(ErrorCode.LEXER_UNCLOSED_STRING, line, col);
-                    tokens.add(new Token(kind, lexeme, line, col));
-                    advance(lexeme.length());
-                    continue;
+                    
+                    throw new RuntimeError("렉서 오류: 닫히지 않은 문자열 리터럴입니다.", line, col);
                 }
             }
 

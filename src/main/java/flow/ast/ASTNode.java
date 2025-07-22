@@ -1,5 +1,7 @@
 package flow.ast;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
 import flow.utility.Pair;
 
 import java.io.PrintStream;
@@ -33,4 +35,7 @@ public abstract class ASTNode {
             os.print(" ");
         }
     }
+
+    public abstract Value accept(Interpreter interpreter);
+
 }

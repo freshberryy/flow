@@ -1,5 +1,8 @@
 package flow.ast.expr;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 
 public class UnaryExpr extends Expr{
@@ -42,5 +45,11 @@ public class UnaryExpr extends Expr{
 
     public String getOp() {
         return op;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        Value operandValue = this.getOperand().accept(interpreter); 
+        return operandValue.performUnaryOperation(this.getOp(), this.line, this.col); 
     }
 }

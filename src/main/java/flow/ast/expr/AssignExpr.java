@@ -1,5 +1,9 @@
 package flow.ast.expr;
 
+import flow.runtime.errors.RuntimeError;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 
 public class AssignExpr extends Expr{
@@ -43,5 +47,26 @@ public class AssignExpr extends Expr{
 
     public Expr getRhs() {
         return rhs;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        Value rhsValue = this.getRhs().accept(interpreter); 
+        Expr lhsNode = this.getLhs(); 
+
+        if (lhsNode instanceof IdentifierExpr) {
+            IdentifierExpr idNode = (IdentifierExpr)lhsNode;
+            interpreter.currentEnvironment.assign(idNode.getName(), rhsValue, this.line, this.col); 
+        } else if (lhsNode instanceof Array1DAccessExpr) {
+            
+            throw new RuntimeError("배열 요소 할당은 아직 구현되지 않았습니다.", this.line, this.col);
+        } else if (lhsNode instanceof Array2DAccessExpr) {
+            
+            throw new RuntimeError("2차원 배열 요소 할당은 아직 구현되지 않았습니다.", this.line, this.col);
+        } else {
+            
+            throw new RuntimeError("유효하지 않은 할당 좌변입니다.", this.line, this.col);
+        }
+        return rhsValue; 
     }
 }

@@ -1,5 +1,8 @@
 package flow.ast.expr;
 
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+
 import java.io.PrintStream;
 
 public class IdentifierExpr extends Expr{
@@ -32,5 +35,10 @@ public class IdentifierExpr extends Expr{
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        return interpreter.currentEnvironment.lookup(this.getName(), this.line, this.col);
     }
 }

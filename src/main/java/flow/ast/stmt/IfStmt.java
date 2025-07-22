@@ -1,6 +1,9 @@
 package flow.ast.stmt;
 
 import flow.ast.expr.Expr;
+import flow.runtime.interpreter.Interpreter;
+import flow.runtime.types.Value;
+import flow.runtime.types.VoidValue;
 import flow.utility.Pair;
 
 import java.io.PrintStream;
@@ -88,5 +91,29 @@ public class IfStmt extends Stmt{
 
     public BlockStmt getElseBranch() {
         return elseBranch;
+    }
+
+    @Override
+    public Value accept(Interpreter interpreter) {
+        Value conditionValue = this.getCondition().accept(interpreter); 
+
+        if (conditionValue.isTruth()) { 
+            this.getThenBranch().accept(interpreter);
+        } else {
+            boolean executedElseIf = false; 
+            for (Pair<Expr, BlockStmt> elseIf : this.getElseIfBranches()) { 
+                Value elseIfCondition = elseIf.first().accept(interpreter); 
+                if (elseIfCondition.isTruth()) {
+                    elseIf.second().accept(interpreter); 
+                    executedElseIf = true;
+                    break; 
+                }
+            }
+
+            if (!executedElseIf && this.getElseBranch() != null) { 
+                this.getElseBranch().accept(interpreter); 
+            }
+        }
+        return new VoidValue(); 
     }
 }
