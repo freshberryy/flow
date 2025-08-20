@@ -1,11 +1,11 @@
 (* 식 *)
 literal ::= INT_LITERAL | FLOAT_LITERAL | STRING_LITERAL | BOOL_LITERAL
 
-array_access ::= IDENTIFIER "[" expr "]" "[" expr "]" (* 배열은 arr[i][j] 형태의 2차원 인덱싱만 허용 *)
+array_access ::= IDENTIFIER "[" expr "]" "[" expr "]" (* 2차원 배열만 허용. *)
 arg_list ::= expr { "," expr }
 
 primary_expr ::= IDENTIFIER | literal | "(" expr ")"
-postfix_expr ::= primary_expr { "(" [ arg_list ] ")" | "[" expr "]" "[" expr "]" } (* 2차원 배열 참조까지만 허용 *)
+postfix_expr ::= primary_expr { "(" [ arg_list ] ")" | "[" expr "]" "[" expr "]" } 
 unary_expr   ::= ("+" | "-" | "!") unary_expr | postfix_expr
 mul_expr ::= unary_expr { ("*" | "/" | "%") unary_expr }
 add_expr ::= mul_expr { ("+" | "-") mul_expr }
@@ -20,7 +20,7 @@ expr ::= assign_expr
 (* 문 *)
 block            ::= LBRACE { stmt } RBRACE
 type             ::= KW_INT | KW_STRING | KW_FLOAT | KW_BOOL
-dim_suffix       ::= "[" "]" "[" "]" (* 2차원 배열만 허용. *)
+dim_suffix       ::= "[" "]" "[" "]" 
 param_type       ::= type [ dim_suffix ] 
 param            ::= param_type IDENTIFIER
 param_list       ::= param { COMMA param }
