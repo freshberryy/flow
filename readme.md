@@ -1,6 +1,11 @@
-# 1. flow 언어 소개
+# 1. 프로젝트 소개
+이 프로젝는 다음 두 가지를 포함합니다.
+- flow 언어의 ebnf 정의
+- flow 언어를 실행할 수 있는 인터프리터
 
-## 1.1 변수
+# 2. flow 언어 소개
+
+## 2.1 변수
 변수는 `타입 변수명 = 초기값;`으로 선언한다. 초기값 없이 선언하는 경우, 오류이다(예:`string x;`).
 자료형은 `int, string, float(지수 표기는 지원하지 않음), bool`이 있다. 타입 추론은 지원하지 않는다.  
 변수의 스코프는 블록 단위이다. 연속된 선언(예: int `x, y`)는 허용하지 않는다. 변수의 그림자(shadowing)은 허용된다. 
@@ -9,7 +14,7 @@ int count = 0;
 string region = "천안";
 ```
 
-## 1.2 제어문
+## 2.2 제어문
 `if`와 `else`, `else if`, `for`, `while`을 지원한다. 모든 제어문은 c와 마찬가지로 키워드로 시작해 표현식을 받음으로써 구문을 구분한다. 중괄호 생략은 지원하지 않는다. 
 ```
 if (score > 90) {
@@ -32,7 +37,7 @@ for(i = 0; i < 5; i++){
 ```
 for문의 루프 변수는 위와 같이 루프 바깥에서 선언 및 초기화를 거친 뒤 사용해야 한다.
 
-## 1.3 함수
+## 2.3 함수
 사용자 정의 함수를 지원한다. 반환형(기본 자료형 또는 void)을 명시하여 선언한다. void 형일 경우 return 생략이 가능하다. 모든 return문의 타입은 동일해야 하며, return의 타입이 하나라도 다르면 에러이다. 또한 분기문에서 return 시 모든 가능한 분기에서 return을 해야 한다. 함수 오버로딩이나 디폴트 매개변수 등은 지원하지 않는다. 함수는 일급 객체로 취급될 수 없다. 
 ```
 void hi(string name) {
@@ -67,7 +72,7 @@ string[][] b = csv_to_array(string path);
 - 함수 호출 뒤에 배열 인덱싱은 불가하다.
 ```
 
-## 1.6 리터럴, 식별자, 연산자, 주석, 구두점
+## 2.6 리터럴, 식별자, 연산자, 주석, 구두점
 
 #### 리터럴
 리터럴은 `int, string, float, bool(true, false)`형을 지원한다. 문자열 내부의 이스케이프 문자는 지원하지 않는다. 또한 `.5`, `0.` 등의 실수 리터럴은 허용되지 않는다.  
@@ -98,11 +103,11 @@ string[][] b = csv_to_array(string path);
 - `,` : 함수의 파라미터 구분, 배열 초기화
 - `;` : statement의 끝, for문의 조건식 내
 
-# 2. 실행 방법
-flow 언어는 Java 17 이상에서 사용 가능하다. 빌드 도구로 그레이들을 사용한다.  
+# 3. 인터프리터 실행 방법
+flow 언어를 위한 인터프리터는 Java 17 이상에서 사용 가능하다. 빌드 도구로 그레이들을 사용한다.  
 실행 절차는 다음과 같다.  
 
-1. 저장소를 클론한다.
+2. 저장소를 클론한다.
 ```
 git clone https://github.com/freshberryy/flow.git
 cd flow
@@ -120,9 +125,9 @@ java -cp build/classes/java/main flow.gui.FlowEditor
 ```
 실행 시 별도의 콘솔이 아닌 gui 그래픽 창이 표시된다.  
 
-# 3. 사용 라이브러리
+# 4. 사용 라이브러리
 이 프로젝트는  다음 외부 라이브러리를 포함한다.  
 - [RSyntaxTextArea](https://github.com/bobbylight/RSyntaxTextArea) 
 - 라이선스: BSD 3-Clause License  
 
-RSyntaxTextArea는 자바 스윙으로 작성된 간단한 코드 편집기이다. 프로젝트에 BSD 3-Clause 전문(LICENSE.md)을 포함하였다.  
+RSyntaxTextArea는 자바 스윙으로 작성된 간단한 코드 편집기이다. 

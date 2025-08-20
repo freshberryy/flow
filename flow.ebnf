@@ -1,0 +1,42 @@
+(* 식 *)
+literal ::= INT_LITERAL | FLOAT_LITERAL | STRING_LITERAL | BOOL_LITERAL
+
+array_access ::= IDENTIFIER "[" expr "]" "[" expr "]" (* 배열은 arr[i][j] 형태의 2차원 인덱싱만 허용 *)
+arg_list ::= expr { "," expr }
+
+primary_expr ::= IDENTIFIER | literal | "(" expr ")"
+postfix_expr ::= primary_expr { "(" [ arg_list ] ")" | "[" expr "]" "[" expr "]" } (* 2차원 배열 참조까지만 허용 *)
+unary_expr   ::= ("+" | "-" | "!") unary_expr | postfix_expr
+mul_expr ::= unary_expr { ("*" | "/" | "%") unary_expr }
+add_expr ::= mul_expr { ("+" | "-") mul_expr }
+relational_expr ::= add_expr { ("<" | ">" | "<=" | ">=") add_expr }
+equality_expr ::= relational_expr { ("==" | "!=") relational_expr }
+and_expr ::= equality_expr { "&&" equality_expr }
+or_expr ::= and_expr { "||" and_expr }
+lhs ::= IDENTIFIER | array_access
+assign_expr ::= lhs ASSIGN assign_expr | or_expr
+expr ::= assign_expr
+
+(* 문 *)
+block            ::= LBRACE { stmt } RBRACE
+type             ::= KW_INT | KW_STRING | KW_FLOAT | KW_BOOL
+dim_suffix       ::= "[" "]" "[" "]" (* 2차원 배열만 허용. *)
+param_type       ::= type [ dim_suffix ] 
+param            ::= param_type IDENTIFIER
+param_list       ::= param { COMMA param }
+func_return_type ::= type | KW_VOID
+func_decl_stmt   ::= func_return_type IDENTIFIER LPAREN [ param_list ] RPAREN block
+return_stmt      ::= KW_RETURN [ expr ]
+continue_stmt    ::= KW_CONTINUE
+break_stmt       ::= KW_BREAK
+opt_expr         ::= expr | ε
+for_stmt         ::= KW_FOR LPAREN [ opt_expr ] SEMICOLON [ opt_expr ] SEMICOLON [ opt_expr ] RPAREN block
+while_stmt       ::= KW_WHILE LPAREN expr RPAREN block
+if_stmt          ::= KW_IF LPAREN expr RPAREN block { KW_ELSE KW_IF LPAREN expr RPAREN block } [ KW_ELSE block ]
+
+simple_stmt ::= var_decl_stmt | expr_stmt | break_stmt | continue_stmt | return_stmt
+var_decl_stmt ::= type [ dim_suffix ] IDENTIFIER ASSIGN expr
+expr_stmt ::= expr
+stmt ::= simple_stmt SEMICOLON | func_decl_stmt | if_stmt | while_stmt | for_stmt 
+
+program ::= { stmt }
